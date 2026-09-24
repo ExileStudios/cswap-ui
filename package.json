@@ -1,0 +1,43 @@
+{
+  "name": "cswap-ui",
+  "productName": "cswap UI",
+  "version": "1.0.0",
+  "description": "A floating desktop widget showing usage limits for every Claude account managed by cswap (claude-swap).",
+  "keywords": [
+    "claude",
+    "claude-code",
+    "cswap",
+    "claude-swap",
+    "usage",
+    "widget",
+    "electron"
+  ],
+  "homepage": "https://github.com/ExileStudios/cswap-ui#readme",
+  "bugs": "https://github.com/ExileStudios/cswap-ui/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ExileStudios/cswap-ui.git"
+  },
+  "license": "MIT",
+  "author": "Stephen Michael (https://github.com/ExileStudios)",
+  "private": true,
+  "type": "module",
+  "main": "src/main/main.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node scripts/start.js",
+    "demo": "node scripts/start.js --demo",
+    "screenshots": "node scripts/start.js --demo --snapshot docs/full.png && node scripts/start.js --demo --compact --snapshot docs/compact.png",
+    "lint": "eslint .",
+    "test": "node --test",
+    "check": "npm run lint && npm test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "electron": "^38.8.6",
+    "eslint": "^9.36.0",
+    "globals": "^16.4.0"
+  }
+}
