@@ -30,6 +30,7 @@ const state = {
   snapshot: null,
   error: null,
   loading: false,
+  privacy: false,
   settings: { pinned: true, compact: false },
 };
 
@@ -177,7 +178,7 @@ function compactCard(account, status, active) {
       title: `${displayName(account)}${org}\n${status.label}`,
     },
     h('span', { class: 'dot' }),
-    h('span', { class: 'slot' }, String(account.number)),
+    !state.privacy && h('span', { class: 'slot' }, String(account.number)),
     h('span', { class: 'who' }, name),
     planChip(account.plan, { short: true }),
     h('div', { class: 'minis' }, limitsOf(usage).filter((l) => !l.scoped).map(miniBar)),
@@ -250,10 +251,10 @@ els.pin.addEventListener('click', () => api.toggleSetting('pinned'));
 els.menu.addEventListener('click', () => api.openMenu());
 els.hide.addEventListener('click', () => api.hide());
 
-api.onUsage(({ loading, snapshot, error }) => {
-  // Payloads are structured-cloned per message, so compare by fetch time.
-  const dataChanged = snapshot?.fetchedAt !== state.snapshot?.fetchedAt || error !== state.error;
-  Object.assign(state, { loading, snapshot, error });
+api.onUsage(({ loading, snapshot, error, privacy }) => {
+  // A privacy toggle changes presentation even when the cached fetch time is unchanged.
+  const dataChanged = snapshot?.fetchedAt !== state.snapshot?.fetchedAt || error !== state.error || privacy !== state.privacy;
+  Object.assign(state, { loading, snapshot, error, privacy });
   if (dataChanged) render();
   else {
     renderChrome();
