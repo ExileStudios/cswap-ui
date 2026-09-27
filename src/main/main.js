@@ -7,6 +7,7 @@ import { parseArgs } from 'node:util';
 import { summarize } from '../shared/usage.js';
 import { CswapSource } from './cswap.js';
 import { DemoSource } from './demo.js';
+import { privateError, privateSnapshot } from './privacy.js';
 import { REFRESH_INTERVALS_SEC, SettingsStore } from './settings.js';
 import { createTrayIcon } from './tray-icon.js';
 
@@ -51,7 +52,13 @@ function send(channel, payload) {
 }
 
 function publishUsage(loading) {
-  send('usage', { loading, snapshot: lastSnapshot, error: lastError });
+  const { privacy } = settings.data;
+  send('usage', {
+    loading,
+    privacy,
+    snapshot: privateSnapshot(lastSnapshot, privacy),
+    error: privateError(lastError, privacy),
+  });
 }
 
 /** Fetches fresh usage. Concurrent callers share one in-flight cswap call. */
@@ -175,14 +182,18 @@ function resetPosition() {
 // Settings and tray
 
 function viewSettings() {
-  const { pinned, compact } = settings.data;
-  return { pinned, compact };
+  const { pinned, compact, privacy } = settings.data;
+  return { pinned, compact, privacy };
 }
 
 function setSetting(key, value) {
   settings.update({ [key]: value });
   if (key === 'pinned') applyPin();
   if (key === 'intervalSec') schedulePoll();
+  if (key === 'privacy') {
+    publishUsage(inflight != null);
+    updateTrayTooltip();
+  }
   send('settings', viewSettings());
   tray?.setContextMenu(buildMenu());
 }
@@ -201,13 +212,14 @@ function intervalLabel(sec) {
 }
 
 function buildMenu() {
-  const { pinned, compact, intervalSec } = settings.data;
+  const { pinned, compact, privacy, intervalSec } = settings.data;
   return Menu.buildFromTemplate([
     { label: 'Show / hide', click: toggleVisible },
     { label: 'Refresh now', click: () => void refresh() },
     { type: 'separator' },
     { label: 'Always on top', type: 'checkbox', checked: pinned, click: (item) => setSetting('pinned', item.checked) },
     { label: 'Compact view', type: 'checkbox', checked: compact, click: (item) => setSetting('compact', item.checked) },
+    { label: 'Privacy mode', type: 'checkbox', checked: privacy, click: (item) => setSetting('privacy', item.checked) },
     {
       label: 'Refresh every',
       submenu: REFRESH_INTERVALS_SEC.map((sec) => ({
@@ -233,7 +245,7 @@ function buildMenu() {
 
 function updateTrayTooltip() {
   if (!tray) return;
-  if (lastError && !lastSnapshot) return tray.setToolTip(`cswap UI: ${lastError}`);
+  if (lastError && !lastSnapshot) return tray.setToolTip(`cswap UI: ${privateError(lastError, settings.data.privacy)}`);
   const { usable, total } = summarize(lastSnapshot?.accounts);
   tray.setToolTip(`cswap UI: ${usable} of ${total} accounts available`);
 }
@@ -265,7 +277,7 @@ function registerIpc() {
     if (snapshotPath) await captureSnapshotAndExit();
   });
   ipcMain.on('settings:toggle', (event, key) => {
-    if (isTrusted(event) && (key === 'pinned' || key === 'compact')) setSetting(key, !settings.data[key]);
+    if (isTrusted(event) && (key === 'pinned' || key === 'compact' || key === 'privacy')) setSetting(key, !settings.data[key]);
   });
   ipcMain.on('window:resize', (event, height) => {
     if (!isTrusted(event) || typeof height !== 'number' || !Number.isFinite(height)) return;

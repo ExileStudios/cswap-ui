@@ -8,6 +8,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   y: null,
   pinned: true,
   compact: false,
+  privacy: false,
   intervalSec: 60,
 });
 
@@ -24,6 +25,7 @@ export function sanitizeSettings(raw) {
     y: coordinate(src.y),
     pinned: bool(src.pinned, DEFAULT_SETTINGS.pinned),
     compact: bool(src.compact, DEFAULT_SETTINGS.compact),
+    privacy: bool(src.privacy, DEFAULT_SETTINGS.privacy),
     intervalSec: REFRESH_INTERVALS_SEC.includes(src.intervalSec) ? src.intervalSec : DEFAULT_SETTINGS.intervalSec,
   };
 }

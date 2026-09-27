@@ -17,9 +17,18 @@ describe('sanitizeSettings', () => {
       y: -20,
       pinned: false,
       compact: true,
+      privacy: false,
       intervalSec: 120,
     });
     assert.deepEqual(sanitizeSettings({ x: 1.5, y: '3', pinned: 'yes', intervalSec: 1 }), DEFAULT_SETTINGS);
+  });
+
+  it('defaults privacy off for existing settings and accepts only booleans', () => {
+    assert.equal(sanitizeSettings({ compact: true }).privacy, false);
+    assert.equal(sanitizeSettings({ privacy: true }).privacy, true);
+    for (const privacy of ['true', 'false', 1, null, {}]) {
+      assert.equal(sanitizeSettings({ privacy }).privacy, false);
+    }
   });
 });
 
@@ -41,12 +50,12 @@ describe('SettingsStore', () => {
     const file = path.join(dir, 'nested', 'settings.json');
     const store = new SettingsStore(file);
     await store.load();
-    store.update({ compact: true, x: 100, y: 200 });
+    store.update({ compact: true, privacy: true, x: 100, y: 200 });
     store.update({ intervalSec: 300 });
     await store.flush();
 
     const saved = JSON.parse(await readFile(file, 'utf8'));
-    assert.deepEqual(saved, { ...DEFAULT_SETTINGS, compact: true, x: 100, y: 200, intervalSec: 300 });
+    assert.deepEqual(saved, { ...DEFAULT_SETTINGS, compact: true, privacy: true, x: 100, y: 200, intervalSec: 300 });
     assert.deepEqual(await new SettingsStore(file).load(), saved);
   });
 

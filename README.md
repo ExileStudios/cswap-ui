@@ -16,6 +16,7 @@ A small, always-on-top desktop widget that shows the usage limits of every Claud
 - **Plan badges.** Shows Max 5x/20x, Team Premium 5x / Standard 1x, Pro or Enterprise, read from cswap's per-account config.
 - **Pace hints.** A tick on weekly bars marks where even usage would be right now, and a `!` flags windows cswap projects will run out before they reset.
 - **Stays out of the way.** Frameless, dark, draggable, and remembers its position. Has a compact mode, a tray icon, and an option to start at login.
+- **Privacy mode.** Replaces account identities with slot labels such as “Account 1” in both views, including hover text.
 - **Read-only.** It runs `cswap list --json` and reads the account-info block of cswap's config snapshots. It never opens credential files or changes anything.
 
 ## Requirements
@@ -60,6 +61,12 @@ To try the UI without cswap, run `npm run demo`.
 - **Tray icon:** click to show or hide. The menu has the refresh interval (30 seconds to 5 minutes, default 1 minute), start at login, reset position and quit.
 
 Polling pauses while the widget is hidden and resumes when it's shown or the computer wakes from sleep.
+
+### Privacy mode
+
+Open **More options (⋯) → Privacy mode**, or enable it in the tray menu, before sharing your screen. Accounts appear as **Account 1**, **Account 2**, etc., using their cswap slot numbers. Emails, aliases, and organization names are hidden in both full and compact views, including tooltips. Plan badges, usage, and active-account indicators remain visible.
+
+The preference is saved across restarts and is off by default. Toggling it updates the current view immediately, without waiting for a refresh. Raw CLI error details are also hidden while it is on. This only changes the widget's presentation; it does not modify cswap's stored accounts or hide identities in other applications.
 
 ## Configuration
 
